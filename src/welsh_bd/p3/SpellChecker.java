@@ -12,33 +12,34 @@ public class SpellChecker {
 		
 		public TrieNode(char character) {
 			validWord = false;
-			this.character = Character.toLowerCase(character);
+			this.character = Character.toUpperCase(character);
 		}
 		
-		private void insert(String word) {
+		private void insert(String word, TrieNode root) {
+			TrieNode node = root;
 			for(int i = 0; i < word.length(); i++) {
 				char currentChar = word.charAt(i);
 				
-				TrieNode node;
-				if(containsKey(children, currentChar)) {
-					node = get(this, currentChar);
+				if((node.children[(int)currentChar - (int)'A'] != null)) {	// If the children array already has a node for currentChar
+					node = node.children[(int)currentChar - (int)'A'];		// Just set node to that one and continue the loop
 				}
-				else {
-					node = new TrieNode(character);
-					children[character] = node;
-					if(i == word.length() - 1) node.validWord = true;		// If this is last char in word, this node is a leaf node
+				else {	// Else if the children array doesn't have a node for current char...
+					TrieNode newNode = new TrieNode(currentChar);				// Create one
+					if(i == word.length() - 1) newNode.validWord = true;			// If this is last char in word, this node is a leaf node
+					node.children[(int)currentChar - (int)'A'] = newNode;			// Put it in the appropriate spot in the array
+					node = newNode;												// set node to newNode so we continue crawling the trie
 				}
 			}
 		}
 		
 		private boolean containsKey(TrieNode[] children, char c) {
 			// Return true if a child array contains a non-null reference at for c
-			return children[c] != null;
+			return children[(int)c - (int)'A'] != null;
 		}
 		
 		private TrieNode get(TrieNode node, char c) {
 			// Return the TrieNode that contains the given char in the children array for node
-			return node.children[c];
+			return node.children[(int)c - (int)'A'];
 		}
 	}
 	
@@ -47,7 +48,7 @@ public class SpellChecker {
 		root = new TrieNode(Character.MIN_VALUE);
 		
 		for(String word : lexicon) {
-			root.insert(word);
+			root.insert(word.toUpperCase(), root);
 		}
 	}
 	
@@ -95,7 +96,7 @@ public class SpellChecker {
 				if(M[i][j-1] + 1 < min) min = M[i][j-1] + 1;						// 2nd case
 				
 				int add;													// For 3rd case, first figure out whether to add 1 or 0
-				if(Character.toLowerCase(s1.charAt(i-1)) == Character.toLowerCase(s2.charAt(j-1)))	add = 0;
+				if(Character.toUpperCase(s1.charAt(i-1)) == Character.toUpperCase(s2.charAt(j-1)))	add = 0;
 				else									add = 1;
 				
 				if(M[i-1][j-1] + add < min)		min = M[i-1][j-1] + add;	// Now check if 3rd case is the min
