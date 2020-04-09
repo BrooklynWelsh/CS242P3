@@ -3,8 +3,59 @@ package welsh_bd.p3;
 import java.util.List;
 
 public class SpellChecker {
+	public static class TrieNode
+	{
+		final int ALPHABET_SIZE = 26;
+		char character;							// Char represented by this TrieNode	
+		TrieNode[] children = new TrieNode[ALPHABET_SIZE]; // Array to contain references to all 26 possible children
+		boolean validWord;						// Does this node indicate the end of a correctly spelled word
+		
+		public TrieNode(char character) {
+			validWord = false;
+			this.character = Character.toLowerCase(character);
+		}
+		
+		private void insert(String word) {
+			for(int i = 0; i < word.length(); i++) {
+				char currentChar = word.charAt(i);
+				
+				TrieNode node;
+				if(containsKey(children, currentChar)) {
+					node = get(this, currentChar);
+				}
+				else {
+					node = new TrieNode(character);
+					children[character] = node;
+					if(i == word.length() - 1) node.validWord = true;		// If this is last char in word, this node is a leaf node
+				}
+			}
+		}
+		
+		private boolean containsKey(TrieNode[] children, char c) {
+			// Return true if a child array contains a non-null reference at for c
+			return children[c] != null;
+		}
+		
+		private TrieNode get(TrieNode node, char c) {
+			// Return the TrieNode that contains the given char in the children array for node
+			return node.children[c];
+		}
+	}
+	
+	// Private helper functions for inner class
+	private void createTrie() {
+		root = new TrieNode(Character.MIN_VALUE);
+		
+		for(String word : lexicon) {
+			root.insert(word);
+		}
+	}
+	
+	
+	// Public SpellChecker functions
 	public SpellChecker (List<String> lexicon) {
 		this.lexicon = lexicon;
+		createTrie();
 	}
 	
 	public boolean spelledCorrectly(String word) {
@@ -44,7 +95,7 @@ public class SpellChecker {
 				if(M[i][j-1] + 1 < min) min = M[i][j-1] + 1;						// 2nd case
 				
 				int add;													// For 3rd case, first figure out whether to add 1 or 0
-				if(s1.charAt(i-1) == s2.charAt(j-1))	add = 0;
+				if(Character.toLowerCase(s1.charAt(i-1)) == Character.toLowerCase(s2.charAt(j-1)))	add = 0;
 				else									add = 1;
 				
 				if(M[i-1][j-1] + add < min)		min = M[i-1][j-1] + add;	// Now check if 3rd case is the min
@@ -61,4 +112,5 @@ public class SpellChecker {
 	}
 	
 	List<String> lexicon;
+	TrieNode root;
 }
