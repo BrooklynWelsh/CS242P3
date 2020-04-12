@@ -1,14 +1,15 @@
-package welsh_bd.p3;
+package spellchecker;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SpellChecker {
 	public static class TrieNode
 	{
 		final int ALPHABET_SIZE = 26;
-		char character;							// Char represented by this TrieNode	
-		TrieNode[] children = new TrieNode[ALPHABET_SIZE]; // Array to contain references to all 26 possible children
-		boolean validWord;						// Does this node indicate the end of a correctly spelled word
+		char character;										// Char represented by this TrieNode	
+		TrieNode[] children = new TrieNode[ALPHABET_SIZE]; 	// Array to contain references to all 26 possible children
+		boolean validWord;									// Does this node indicate the end of a correctly spelled word
 		
 		public TrieNode(char character) {
 			validWord = false;
@@ -37,9 +38,16 @@ public class SpellChecker {
 			return children[(int)c - (int)'A'] != null;
 		}
 		
-		private TrieNode get(TrieNode node, char c) {
-			// Return the TrieNode that contains the given char in the children array for node
-			return node.children[(int)c - (int)'A'];
+		private TrieNode get(String word) {
+			return get(this, word, 0);
+		}
+		
+		private TrieNode get(TrieNode node, String word, int counter) {
+			// Counter will be used to tell if we've reached the last char of word
+			if(counter == word.length()) return node;	// If at end of word return that node
+			char thisChar = word.charAt(counter);		// Else, get the char at current spot and keep traversing
+			if(node.children[(int)thisChar - (int)'A'] == null) return null;
+			return get(node.children[(int)thisChar - (int)'A'], word, counter + 1);
 		}
 	}
 	
@@ -60,11 +68,21 @@ public class SpellChecker {
 	}
 	
 	public boolean spelledCorrectly(String word) {
-		
+		String upperWord = word.toUpperCase();	// All words/chars are converted to upperCase so Trie math is easier
+		TrieNode endNode = root.get(upperWord);
+		return (endNode != null) && endNode.validWord;
 	}
 	
 	public List<String> suggestWords(String word, int maxEditDistance){
+		List<String> suggestedWords= new ArrayList();	// Create list to contain suggested words
+		if(spelledCorrectly(word)) {					// If word is already correct, just add word then return
+			suggestedWords.add(word);
+		}
+		else {											// Else traverse trie looking for words
+			
+		}
 		
+		return suggestedWords;
 	}
 	
 	public static int editDistance(String s1, String s2) {
@@ -112,6 +130,6 @@ public class SpellChecker {
 		
 	}
 	
-	List<String> lexicon;
-	TrieNode root;
+	public List<String> lexicon;
+	public TrieNode root;
 }

@@ -1,4 +1,4 @@
-package welsh_bd.p3;
+package spellchecker;
 
 import java.io.IOException;
 import java.nio.file.Paths;

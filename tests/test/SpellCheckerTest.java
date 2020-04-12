@@ -1,4 +1,4 @@
-package welsh_bd.p3;
+package test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Scanner;
 
 import org.junit.jupiter.api.Test;
+
+import spellchecker.SpellChecker;
 
 class SpellCheckerTest {
 
@@ -34,13 +36,20 @@ class SpellCheckerTest {
 		List<String> lexicon = processFile("resources\\lexicon.txt");
 		SpellChecker check = new SpellChecker(lexicon);
 		
-		assertEquals(Character.MIN_VALUE, check.root.character);		// Test that root character was initialized correctly
+		assertEquals(Character.MIN_VALUE, check.root);		// Test that root character was initialized correctly
 	
 	}
 
 	@Test
 	void testSpelledCorrectly() {
-		fail("Not yet implemented");
+		List<String> lexicon = processFile("resources\\lexicon.txt");
+		SpellChecker check = new SpellChecker(lexicon);
+		
+		boolean spelledCorrectly = check.spelledCorrectly("word");
+		assertEquals(spelledCorrectly, true);
+		
+		spelledCorrectly = check.spelledCorrectly("worddz");
+		assertEquals(spelledCorrectly, false);
 	}
 
 	@Test
