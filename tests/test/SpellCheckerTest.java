@@ -1,3 +1,8 @@
+/**
+ * An incomplete test document for testing the various functions of SpellChecker
+ * @author Brooklyn Welsh
+ */
+
 package test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -54,7 +59,14 @@ class SpellCheckerTest {
 
 	@Test
 	void testSuggestWords() {
-		fail("Not yet implemented");
+		List<String> lexicon = processFile("resources\\lexicon.txt"); 
+		SpellChecker check = new SpellChecker(lexicon);
+
+		List<String> suggestions = check.suggestWords("worh", 3);
+		System.out.println(suggestions);
+		
+		suggestions = check.suggestWords("word", 3);
+		System.out.println(suggestions);
 	}
 
 	@Test

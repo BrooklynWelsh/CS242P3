@@ -1,3 +1,8 @@
+/**
+ * Console interface for Milestone 1
+ * @author Brooklyn Welsh
+ */
+
 package spellchecker;
 
 import java.io.IOException;

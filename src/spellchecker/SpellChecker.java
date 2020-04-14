@@ -1,17 +1,28 @@
+/**
+ * SpellChecker class defines functions for calculating levenshtein distance, checking correct spelling of a word, and
+ * offering suggestions of incorrectly spelled words
+ * @author Brooklyn Welsh
+ */
+
 package spellchecker;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class SpellChecker {
-	public static class TrieNode
+	private static class TrieNode
 	{
+		/**
+		 * Inner class that defines a TrieNode that is used to build the trie
+		 */
 		final int ALPHABET_SIZE = 26;
 		char character;										// Char represented by this TrieNode	
 		TrieNode[] children = new TrieNode[ALPHABET_SIZE]; 	// Array to contain references to all 26 possible children
 		boolean validWord;									// Does this node indicate the end of a correctly spelled word
 		
-		public TrieNode(char character) {
+		private TrieNode(char character) {
 			validWord = false;
 			this.character = Character.toUpperCase(character);
 		}
@@ -31,11 +42,6 @@ public class SpellChecker {
 					node = newNode;												// set node to newNode so we continue crawling the trie
 				}
 			}
-		}
-		
-		private boolean containsKey(TrieNode[] children, char c) {
-			// Return true if a child array contains a non-null reference at for c
-			return children[(int)c - (int)'A'] != null;
 		}
 		
 		private TrieNode get(String word) {
@@ -79,10 +85,59 @@ public class SpellChecker {
 			suggestedWords.add(word);
 		}
 		else {											// Else traverse trie looking for words
+			Integer[] currentRow = new Integer[word.length() + 1];	// First create a row for word 
+			for(int i = 0; i < currentRow.length; i++) {
+				currentRow[i] = i;
+			}
+			for(TrieNode node : root.children) {		 // For each letter of the alphabet (i.e. each child of root node)...
+				suggestWords(node, word, maxEditDistance, currentRow, String.valueOf(node.character), suggestedWords);
+			}
 			
 		}
-		
 		return suggestedWords;
+	}
+	
+	/**
+	 * Recursive helper function for suggestWords
+	 * @param node				stores current node we are visiting in the trie
+	 * @param word				the word we are getting suggestions for
+	 * @param maxEditDistance	max levenshtein distance allowed for suggestions
+	 * @param previousRow		stores the levenshtein distance for last row in the levenshtein table
+	 * @param prefix			stores the chars for each node we have visited on our way to this TrieNode so far
+	 * @param suggestedWords	is passed along so we can recursively build the list of suggested words
+	 */
+	private void suggestWords(TrieNode node, String word, int maxEditDistance, Integer[] previousRow, String prefix, List<String> suggestedWords) {
+		Integer[] currentRow = new Integer[previousRow.length];	// Create a row for the new letter we are comparing 
+		int cols = word.length() + 1;
+		currentRow[0] = previousRow[0] + 1;				// First column for the row is one plus the last row's first column
+		int min;
+		
+		// This for loop is a slightly modified version of the editDistance function loop
+		for(int i = 1; i < cols; i++) {
+			min = currentRow[i-1] + 1;									// 1st case
+			if(previousRow[i] + 1 < min) min = previousRow[i] + 1;		// 2nd case
+			
+			int add;													// For 3rd case, first figure out whether to add 1 or 0
+			if(Character.toUpperCase(word.charAt(i-1)) == Character.toUpperCase(node.character))	add = 0;
+			else									add = 1;
+			if(previousRow[i -1] + add < min)		min = previousRow[i -1] + add;	// Now check if 3rd case is the min
+			
+			currentRow[i] = min;	// Update current column with min
+		}
+		
+		// If node is a leaf node and last value is less than maxEditDistance, append it to suggestedWords list
+		if(currentRow[currentRow.length - 1] <= maxEditDistance && node.validWord) {
+			suggestedWords.add(prefix);
+		}
+		
+		// If ANY of the columns in currentRow are less than maxEditDistance, recursively search the trie
+		if(Collections.min(Arrays.asList(currentRow)) <= maxEditDistance) {
+			for(TrieNode childNode : node.children) { 
+				if(childNode != null) {
+				suggestWords(childNode, word, maxEditDistance, currentRow, prefix + childNode.character, suggestedWords);
+				}
+			}
+		}
 	}
 	
 	public static int editDistance(String s1, String s2) {
@@ -110,8 +165,8 @@ public class SpellChecker {
 				// Take the min of the following 3 cases: m[i-1][j] + 1 || m[i][j-1] + 1 || m[i-1][j-1] + ?
 				// ? = 0 if s1[i-1] == s2[j-1], ? = 1 if not equal
 				
-				int min = M[i-1][j] + 1;										// 1st case
-				if(M[i][j-1] + 1 < min) min = M[i][j-1] + 1;						// 2nd case
+				int min = M[i-1][j] + 1;									// 1st case
+				if(M[i][j-1] + 1 < min) min = M[i][j-1] + 1;				// 2nd case
 				
 				int add;													// For 3rd case, first figure out whether to add 1 or 0
 				if(Character.toUpperCase(s1.charAt(i-1)) == Character.toUpperCase(s2.charAt(j-1)))	add = 0;
@@ -127,7 +182,19 @@ public class SpellChecker {
 	}
 	
 	public static List<String> suggestWordsTest(String word, int maxEditDistance, List<String> lexicon){
-		
+		SpellChecker check = new SpellChecker(lexicon);
+		List<String> suggestedWords = new ArrayList();
+		if(check.spelledCorrectly(word)) {
+			suggestedWords.add(word);
+		}
+		else {
+			for(String correctWord : lexicon) {
+				if(SpellChecker.editDistance(word, correctWord) < maxEditDistance) {
+					suggestedWords.add(correctWord);
+				}
+			}
+		}
+		return suggestedWords;
 	}
 	
 	public List<String> lexicon;
